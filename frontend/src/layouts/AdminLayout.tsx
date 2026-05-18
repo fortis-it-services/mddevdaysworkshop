@@ -17,6 +17,7 @@ const sidebarItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Events", href: "/admin/events", icon: CalendarDays },
   { label: "Tax Rates", href: "/admin/tax-rates", icon: Receipt },
+  { label: "Tax Dashboard", href: "/admin/dashboard/tax", icon: Receipt },
   { label: "Orders", href: "/admin/orders", icon: Tags },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];

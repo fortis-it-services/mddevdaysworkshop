@@ -16,6 +16,9 @@ import EditEventPage from "@/pages/admin/EditEventPage";
 import TicketTypesPage from "@/pages/admin/TicketTypesPage";
 import TaxRatesPage from "@/pages/admin/TaxRatesPage";
 import OrdersPage from "@/pages/admin/OrdersPage";
+import EventDashboardPage from "@/pages/admin/EventDashboardPage";
+import TaxDashboardPage from "@/pages/admin/TaxDashboardPage";
+import EventExportPage from "@/pages/admin/EventExportPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
 const queryClient = new QueryClient({
@@ -53,11 +56,14 @@ export default function App() {
                   }
                 >
                   <Route index element={<AdminDashboardPage />} />
+                  <Route path="dashboard/tax" element={<TaxDashboardPage />} />
                   <Route path="events" element={<EventsPage />} />
                   <Route path="events/new" element={<CreateEventPage />} />
                   <Route path="events/:id/edit" element={<EditEventPage />} />
+                  <Route path="events/:id/dashboard" element={<EventDashboardPage />} />
                   <Route path="events/:id/ticket-types" element={<TicketTypesPage />} />
                   <Route path="events/:id/orders" element={<OrdersPage />} />
+                  <Route path="events/:id/export" element={<EventExportPage />} />
                   <Route path="tax-rates" element={<TaxRatesPage />} />
                 </Route>
 

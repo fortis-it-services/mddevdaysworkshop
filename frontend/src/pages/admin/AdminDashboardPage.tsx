@@ -1,38 +1,79 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Receipt, Tags, Users } from "lucide-react";
-
-const stats = [
-  { title: "Total Events", value: "—", icon: CalendarDays, description: "Across all statuses" },
-  { title: "Active Orders", value: "—", icon: Tags, description: "Pending & confirmed" },
-  { title: "Tax Rates", value: "—", icon: Receipt, description: "Configured rates" },
-  { title: "Attendees", value: "—", icon: Users, description: "Total registered" },
-];
+import { useState } from "react";
+import { CircleDollarSign, Ticket, CalendarDays, ShoppingCart } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { KpiCard } from "@/components/shared/dashboard/KpiCard";
+import { SalesTrendChart } from "@/components/shared/dashboard/SalesTrendChart";
+import { TopEventsTable } from "@/components/shared/dashboard/TopEventsTable";
+import { DateRangePicker } from "@/components/shared/dashboard/DateRangePicker";
+import { useDashboardOverview, useEventTrend } from "@/hooks/useDashboard";
+import type { DateRangePreset } from "@/types/dashboard";
 
 export default function AdminDashboardPage() {
+  const [preset, setPreset] = useState<DateRangePreset>("ThisMonth");
+  const { data: overview, isLoading } = useDashboardOverview(preset);
+
+  // Use first top event for trend visualization
+  const firstEventId = overview?.topEvents[0]?.eventId;
+  const { data: trendData } = useEventTrend(firstEventId, preset);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">Overview of your event ticketing platform.</p>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-[120px] rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Overview of your event ticketing platform.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Overview of your event ticketing platform.</p>
+        </div>
+        <DateRangePicker value={preset} onChange={setPreset} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <CardDescription>{stat.description}</CardDescription>
-            </CardContent>
-          </Card>
-        ))}
+        <KpiCard
+          title="Total Revenue"
+          value={`${(overview?.totalRevenue ?? 0).toFixed(2)} ${overview?.currency ?? "€"}`}
+          icon={CircleDollarSign}
+          description="Gross revenue"
+        />
+        <KpiCard
+          title="Tickets Sold"
+          value={String(overview?.totalTicketsSold ?? 0)}
+          icon={Ticket}
+          description="Total tickets"
+        />
+        <KpiCard
+          title="Active Events"
+          value={String(overview?.activeEvents ?? 0)}
+          icon={CalendarDays}
+          description="Published events"
+        />
+        <KpiCard
+          title="Avg. Order Value"
+          value={`${(overview?.averageOrderValue ?? 0).toFixed(2)} ${overview?.currency ?? "€"}`}
+          icon={ShoppingCart}
+          description="Per order"
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SalesTrendChart data={trendData ?? []} />
+        <TopEventsTable data={overview?.topEvents ?? []} />
       </div>
     </div>
   );

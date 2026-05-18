@@ -1,6 +1,8 @@
 using DevConfTicketing.Api.Endpoints;
 using DevConfTicketing.Api.Middleware;
+using DevConfTicketing.Application.Dashboard;
 using DevConfTicketing.Application.Events;
+using DevConfTicketing.Application.Export;
 using DevConfTicketing.Application.Orders;
 using DevConfTicketing.Application.Tickets;
 using DevConfTicketing.Infrastructure;
@@ -40,6 +42,8 @@ builder.Services.AddScoped<UpdateTaxRateHandler>();
 builder.Services.AddScoped<CreateOrderHandler>();
 builder.Services.AddScoped<TaxCalculationService>();
 builder.Services.AddScoped<VoucherValidationService>();
+builder.Services.AddScoped<IMetricsService, MetricsService>();
+builder.Services.AddScoped<ICsvExportService, CsvExportService>();
 
 // CORS — allow traceparent header for end-to-end distributed tracing with the frontend
 var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
@@ -95,5 +99,7 @@ app.MapGroup("/api/v1/events").MapEventEndpoints();
 app.MapGroup("/api/v1/events/{eventId}/ticket-types").MapTicketTypeEndpoints();
 app.MapGroup("/api/v1/tax-rates").MapTaxRateEndpoints();
 app.MapGroup("/api/v1/events/{eventId}/orders").MapOrderEndpoints();
+app.MapGroup("/api/v1/dashboard").MapDashboardEndpoints();
+app.MapGroup("/api/v1/events").MapExportEndpoints();
 
 app.Run();
