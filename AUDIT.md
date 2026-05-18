@@ -6,7 +6,7 @@
 
 ---
 
-## Ergebnis: 14 ✅ / 1 ⚠️ / 0 ❌ (von 15 Kriterien)
+## Ergebnis: 15 ✅ / 0 ⚠️ / 0 ❌ (von 15 Kriterien)
 
 | # | Akzeptanzkriterium | Status | Evidenz / Befund |
 |---|---|:---:|---|
@@ -17,7 +17,7 @@
 | 5 | Steuer-Zusammenfassung für Buchhaltung verfügbar | ✅ | `TaxDashboardPage.tsx` mit `TaxSummaryTable` + CSV-Export-Button; Endpoint `GET /dashboard/tax-summary` |
 | 6 | Zeitraum-Filter funktioniert | ✅ | `DateRangePicker.tsx` in allen Dashboard-Seiten; Backend akzeptiert `preset`, `from`, `to` |
 | 7 | Responsive Design für alle Charts | ✅ | Alle Charts nutzen Recharts `ResponsiveContainer` mit `width="100%"` |
-| 8 | OpenTelemetry Custom Metrics werden emittiert | ⚠️ | `order.created` Counter vorhanden; **fehlend:** `ticket.sold`, `order.amount`-Histogram, `checkout.started`/`checkout.completed` (siehe Detailanalyse) |
+| 8 | OpenTelemetry Custom Metrics werden emittiert | ✅ | `order.created` Counter, `ticket.sold` Counter (mit event.id/ticketType.id/amount Tags), `order.amount` Histogram, `checkout.started`/`checkout.completed` Funnel-Metriken in `CreateOrderHandler.cs` |
 | 9 | CSV-Export: Teilnehmerliste mit Check-in-Status | ✅ | `CsvExportService.ExportAttendeesAsync()`: Name, E-Mail, Ticket-Typ, Bestellcode, Datum, Check-in-Status |
 | 10 | CSV-Export: Bestellübersicht mit Zahlungsstatus | ✅ | `CsvExportService.ExportOrdersAsync()` mit Status-Filter implementiert |
 | 11 | CSV-Export: Steuerbericht gruppiert nach Steuersatz | ✅ | `CsvExportService.ExportTaxReportAsync()` gruppiert nach Steuersatz |
@@ -30,32 +30,13 @@
 
 ## Detailanalyse der Mängel
 
-### ⚠️ Kriterium 8: OpenTelemetry Custom Metrics (teilweise erfüllt)
+### ⚠️ Kriterium 8: OpenTelemetry Custom Metrics ~~(teilweise erfüllt)~~ → ✅ BEHOBEN
 
-**Vorhanden:**
-- `order.created` Counter in `src/DevConfTicketing.Application/Orders/CreateOrderHandler.cs`
-- Infrastruktur-Metriken: `db.cosmos.duration` (Histogram), `db.cosmos.operations` (Counter), `http.requests`, `http.errors`
-
-**Fehlend** (gemäß Aufgabenstellung):
-
-```csharp
-// 1. ticket.sold – Counter pro verkauftem Ticket
-telemetry.IncrementCounter("ticket.sold", tags: new Dictionary<string, string>
-{
-    { "event.id", eventId },
-    { "ticketType.id", ticketTypeId },
-    { "amount", quantity.ToString() }
-});
-
-// 2. order.amount – Histogram für Bestellwert-Verteilung
-telemetry.RecordHistogram("order.amount", order.TotalAmount);
-
-// 3. checkout.started / checkout.completed – Funnel-Metriken
-telemetry.IncrementCounter("checkout.started");
-telemetry.IncrementCounter("checkout.completed");
-```
-
-**Ort der Ergänzung:** `src/DevConfTicketing.Application/Orders/CreateOrderHandler.cs`
+**Ergänzt in `CreateOrderHandler.cs`:**
+- `checkout.started` Counter – am Anfang des Handlers (Funnel-Einstieg)
+- `ticket.sold` Counter – pro Ticket-Typ, mit Tags `event.id`, `ticketType.id`, `amount`
+- `order.amount` Histogram – mit dem Brutto-Bestellwert nach Persistierung
+- `checkout.completed` Counter – nach erfolgreicher Bestellerstellung
 
 ---
 
@@ -75,11 +56,9 @@ telemetry.IncrementCounter("checkout.completed");
 
 | Kategorie | Anzahl | Anteil |
 |---|:---:|:---:|
-| ✅ Vollständig erfüllt | 14 | 93,3 % |
-| ⚠️ Teilweise erfüllt | 1 | 6,7 % |
+| ✅ Vollständig erfüllt | 15 | 100 % |
+| ⚠️ Teilweise erfüllt | 0 | 0 % |
 | ❌ Nicht erfüllt | 0 | 0 % |
 | **Gesamt** | **15** | **100 %** |
 
-### Empfohlene nächste Schritte
-
-1. **Quick-Fix (~15 Min.):** 3 fehlende OpenTelemetry-Metriken in `CreateOrderHandler.cs` ergänzen
+### Alle Kriterien erfüllt – keine weiteren Maßnahmen erforderlich
