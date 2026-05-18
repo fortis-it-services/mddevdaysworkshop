@@ -26,6 +26,8 @@ public class CreateOrderHandler(
             ["eventId"] = eventId
         });
 
+        telemetry.IncrementCounter("checkout.started");
+
         try
         {
             var positions = new List<OrderPosition>();
@@ -38,6 +40,13 @@ public class CreateOrderHandler(
                     ?? throw new KeyNotFoundException($"TicketType '{ticketTypeId}' not found for event '{eventId}'.");
 
                 currency = ticketType.Currency;
+
+                telemetry.IncrementCounter("ticket.sold", delta: quantity, tags: new Dictionary<string, string>
+                {
+                    ["event.id"] = eventId,
+                    ["ticketType.id"] = ticketTypeId,
+                    ["amount"] = quantity.ToString()
+                });
 
                 for (var i = 0; i < quantity; i++)
                 {
@@ -97,6 +106,12 @@ public class CreateOrderHandler(
             {
                 ["eventId"] = eventId
             });
+            telemetry.RecordHistogram("order.amount", (double)order.TotalGross, tags: new Dictionary<string, string>
+            {
+                ["eventId"] = eventId,
+                ["currency"] = order.Currency
+            });
+            telemetry.IncrementCounter("checkout.completed");
 
             return created;
         }
